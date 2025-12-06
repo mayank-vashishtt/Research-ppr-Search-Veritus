@@ -6,6 +6,14 @@ if (!MONGODB_URI) {
   throw new Error('Please define the DATABASE_URL environment variable');
 }
 
+// Ensure the database name is 'veritus'
+const MONGODB_URI_WITH_DB = MONGODB_URI.endsWith('/') 
+  ? `${MONGODB_URI}veritus` 
+  : MONGODB_URI.includes('?') 
+    ? MONGODB_URI.replace('?', '/veritus?')
+    : `${MONGODB_URI}/veritus`;
+
+
 interface MongooseCache {
   conn: Mongoose | null;
   promise: Promise<Mongoose> | null;
@@ -31,7 +39,7 @@ async function dbConnect(): Promise<Mongoose> {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts);
+    cached.promise = mongoose.connect(MONGODB_URI_WITH_DB, opts);
   }
 
   try {
