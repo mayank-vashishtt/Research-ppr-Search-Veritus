@@ -16,17 +16,17 @@ export function PaperCard({ paper }: PaperCardProps) {
     impactFactor, 
     pdfLink, 
     journalName,
-    v_journal_name,
-    citationCount
+    v_journal_name
   } = paper;
 
   const displayJournal = journalName || v_journal_name || "Unknown Journal";
-  const displayCitations = impactFactor?.citationCount || citationCount || 0;
+  const displayCitations = impactFactor?.citationCount || 0;
   
   // Format citations
   const formattedCitations = displayCitations > 1000 
     ? `${(displayCitations / 1000).toFixed(1)}k` 
     : displayCitations;
+
 
   return (
     <div className="glass-card glass-card-hover rounded-xl p-6 relative overflow-hidden group">
