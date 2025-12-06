@@ -1,18 +1,19 @@
-import { prisma } from '@/lib/prisma';
+import dbConnect from '@/lib/db';
+import { User } from '@/models/User';
 import React from 'react';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
-  const totalUsers = await prisma.user.count();
-  const academicUsers = await prisma.user.count({
-    where: { isAcademic: true }
-  });
+  await dbConnect();
+  
+  const totalUsers = await User.countDocuments();
+  const academicUsers = await User.countDocuments({ isAcademic: true });
 
-  const recentUsers = await prisma.user.findMany({
-    take: 50,
-    orderBy: { createdAt: 'desc' }
-  });
+  const recentUsers = await User.find()
+    .sort({ createdAt: -1 })
+    .limit(50)
+    .lean();
 
   const progressPercentage = Math.min((academicUsers / 42) * 100, 100);
 
@@ -89,8 +90,8 @@ export default async function AdminPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/50">
-                {recentUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-800/30 transition-colors">
+                {recentUsers.map((user: any) => (
+                  <tr key={user._id.toString()} className="hover:bg-slate-800/30 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-300">{user.email}</td>
                     <td className="px-6 py-4">{user.domain}</td>
                     <td className="px-6 py-4">
