@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Paper } from '@/app/types';
 
 interface PaperCardProps {
@@ -19,6 +19,10 @@ export function PaperCard({ paper }: PaperCardProps) {
     v_journal_name
   } = paper;
 
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
   const displayJournal = journalName || v_journal_name || "Unknown Journal";
   const displayCitations = impactFactor?.citationCount || 0;
   
@@ -27,6 +31,30 @@ export function PaperCard({ paper }: PaperCardProps) {
     ? `${(displayCitations / 1000).toFixed(1)}k` 
     : displayCitations;
 
+  const generateSummary = async () => {
+    setLoadingSummary(true);
+    setSummaryError(null);
+
+    try {
+      const response = await fetch('/api/papers/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, abstract }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate summary');
+      }
+
+      setAiSummary(data.summary);
+    } catch (error: any) {
+      setSummaryError(error.message);
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
 
   return (
     <div className="glass-card glass-card-hover rounded-xl p-6 relative overflow-hidden group">
@@ -60,6 +88,50 @@ export function PaperCard({ paper }: PaperCardProps) {
           <p className="text-sm text-slate-400/80 leading-relaxed line-clamp-2 mix-blend-plus-lighter">
             {abstract}
           </p>
+        )}
+
+        {/* AI Summary Section */}
+        {!aiSummary && !loadingSummary && (
+          <button
+            onClick={generateSummary}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold bg-gradient-to-r from-purple-600/20 to-cyan-600/20 hover:from-purple-600/30 hover:to-cyan-600/30 border border-purple-500/30 hover:border-purple-500/50 text-purple-300 hover:text-purple-200 transition-all duration-300 w-fit"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5 15.5 15.5"/></svg>
+            Generate AI Summary
+          </button>
+        )}
+
+        {loadingSummary && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-600/10 to-cyan-600/10 border border-purple-500/20">
+            <div className="w-3 h-3 border-2 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />
+            <span className="text-xs text-purple-300">Generating AI summary...</span>
+          </div>
+        )}
+
+        {aiSummary && (
+          <div className="relative p-3 rounded-lg bg-gradient-to-br from-purple-950/40 to-cyan-950/40 border border-purple-500/30 backdrop-blur-sm">
+            <div className="absolute top-2 right-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400/50"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5 15.5 15.5"/></svg>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400/80">AI Summary</span>
+            </div>
+            <p className="mt-2 text-sm text-slate-200 leading-relaxed">
+              {aiSummary}
+            </p>
+          </div>
+        )}
+
+        {summaryError && (
+          <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-red-950/20 border border-red-500/30">
+            <span className="text-xs text-red-300">{summaryError}</span>
+            <button
+              onClick={generateSummary}
+              className="text-xs text-red-400 hover:text-red-300 underline"
+            >
+              Retry
+            </button>
+          </div>
         )}
 
         <div className="h-px bg-slate-800/50 my-1" />
