@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generatePaperSummary } from '@/lib/gemini-client';
+import { generatePaperSummary } from '@/lib/grok-client';
 
 export async function POST(request: Request) {
   try {

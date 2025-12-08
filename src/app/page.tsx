@@ -3,6 +3,7 @@
 import { TopicCard } from '@/app/components/TopicCard';
 import { SearchBar } from '@/app/components/SearchBar';
 import { EmailCaptureModal } from '@/app/components/EmailCaptureModal';
+import { TopPapersSection } from '@/app/components/TopPapersSection';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -92,6 +93,9 @@ export default function Home() {
           onAuthRequired={handleAuthRequired}
         />
       </header>
+
+      {/* Top Papers Section (New) */}
+      <TopPapersSection />
       
       {/* CS Topics Section (New) */}
       <section className="w-full relative z-10 mb-16">
