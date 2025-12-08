@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "Explore the latest academic research powered by Veritus AI.",
 };
 
+import { PoweredByVeritus } from "./components/PoweredByVeritus";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,6 +28,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${outfit.variable} ${inter.variable} font-sans antialiased text-slate-100 bg-[#0B0F19]`}>
         {children}
+        <PoweredByVeritus />
       </body>
     </html>
   );
