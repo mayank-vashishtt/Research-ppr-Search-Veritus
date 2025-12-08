@@ -6,39 +6,49 @@ import { EmailCaptureModal } from '@/app/components/EmailCaptureModal';
 import { TopPapersSection } from '@/app/components/TopPapersSection';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-
-const CS_TOPICS = [
-  "Convolutional Neural Networks (CNN)",
-  "Natural Language Processing (NLP)",
-  "Frontend Development",
-  "Backend Architecture",
-  "MERN Stack",
-  "Rust Programming",
-  "Machine Learning",
-  "Deep Learning",
-  "Low Latency Systems"
-];
-
-const TRENDING_TOPICS = [
-  "Generative AI",
-  "Large Language Models",
-  "Climate Change Mitigation",
-  "CRISPR Gene Editing",
-  "Quantum Computing Algorithms",
-  "Sustainable Energy Storage",
-  "Personalized Medicine",
-  "Neuromorphic Computing",
-  "Space Exploration Technologies",
-  "Cybersecurity in IoT",
-  "Blockchain Scalability",
-  "Ethical AI"
-];
+import { useState, useEffect } from 'react';
+import { Paper } from '@/app/types';
 
 export default function Home() {
   const router = useRouter();
   const { authenticated, loading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  
+  // Data State
+  const [topAiPapers, setTopAiPapers] = useState<Paper[]>([]);
+  const [topMlPapers, setTopMlPapers] = useState<Paper[]>([]);
+  const [topMixedPapers, setTopMixedPapers] = useState<Paper[]>([]);
+  const [trendingTopics, setTrendingTopics] = useState<string[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [papersRes, topicsRes] = await Promise.all([
+          fetch('/api/trending/papers'),
+          fetch('/api/trending/topics')
+        ]);
+
+        if (papersRes.ok) {
+          const papersData = await papersRes.json();
+          setTopAiPapers(papersData.ai || []);
+          setTopMlPapers(papersData.ml || []);
+          setTopMixedPapers(papersData.mixed || []);
+        }
+
+        if (topicsRes.ok) {
+          const topicsData = await topicsRes.json();
+          setTrendingTopics(topicsData.topics || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleTopicClick = async (topic: string) => {
     // Check authentication before navigating
@@ -94,48 +104,58 @@ export default function Home() {
         />
       </header>
 
-      {/* Top Papers Section (New) */}
-      <TopPapersSection />
-      
-      {/* CS Topics Section (New) */}
-      <section className="w-full relative z-10 mb-16">
-        <div className="flex items-center gap-4 mb-8 text-cyan-400/80 text-sm font-medium uppercase tracking-widest divider">
-          <span className="h-px bg-cyan-900/50 flex-1"></span>
-          <span>Computer Science &amp; Engineering</span>
-          <span className="h-px bg-cyan-900/50 flex-1"></span>
+      {/* Featured Papers */}
+      {dataLoading ? (
+        <div className="w-full flex justify-center py-20">
+          <div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
         </div>
+      ) : (
+        <>
+          {/* Top Trending Papers (Mixed Best) */}
+          <TopPapersSection 
+            title="Top Trending Papers of the Month" 
+            papers={topMixedPapers}
+            iconColor="text-cyan-400"
+            dividerColor="bg-cyan-900/30"
+          />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {CS_TOPICS.map((topic, index) => (
-            <div key={topic} className={`fade-in`} style={{ animationDelay: `${index * 50}ms` }}>
-              <TopicCard 
-                topic={topic} 
-                onClick={() => handleTopicClick(topic)} 
-              />
+          {/* Top ML Papers */}
+          <TopPapersSection 
+            title="Top ML Trending Papers of the Month" 
+            papers={topMlPapers}
+            iconColor="text-emerald-400"
+            dividerColor="bg-emerald-900/30"
+          />
+
+          {/* Top AI Papers */}
+          <TopPapersSection 
+            title="Top AI Trending Papers" 
+            papers={topAiPapers}
+            iconColor="text-amber-400"
+            dividerColor="bg-amber-900/30"
+          />
+          
+          {/* Trending Topics */}
+          <section className="w-full relative z-10">
+            <div className="flex items-center gap-4 mb-8 text-slate-500 text-sm font-medium uppercase tracking-widest divider">
+              <span className="h-px bg-slate-800 flex-1"></span>
+              <span>Trending Topics of the Month</span>
+              <span className="h-px bg-slate-800 flex-1"></span>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Suggested Topics */}
-      <section className="w-full relative z-10">
-        <div className="flex items-center gap-4 mb-8 text-slate-500 text-sm font-medium uppercase tracking-widest divider">
-          <span className="h-px bg-slate-800 flex-1"></span>
-          <span>Other Trending Research</span>
-          <span className="h-px bg-slate-800 flex-1"></span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {TRENDING_TOPICS.map((topic, index) => (
-            <div key={topic} className={`fade-in`} style={{ animationDelay: `${100 + index * 50}ms` }}>
-              <TopicCard 
-                topic={topic} 
-                onClick={() => handleTopicClick(topic)} 
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {trendingTopics.map((topic, index) => (
+                <div key={topic} className={`fade-in`} style={{ animationDelay: `${100 + index * 50}ms` }}>
+                  <TopicCard 
+                    topic={topic} 
+                    onClick={() => handleTopicClick(topic)} 
+                  />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
+        </>
+      )}
 
       <footer className="mt-24 w-full border-t border-slate-800 pt-8 text-center text-slate-600 text-sm">
         <p>© {new Date().getFullYear()} Veritus Micro-App. Powered by Veritus Search API.</p>
