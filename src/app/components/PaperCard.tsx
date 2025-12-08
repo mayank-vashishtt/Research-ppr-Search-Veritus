@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Paper } from '@/app/types';
+import { useAuth } from '@/app/hooks/useAuth';
+import { EmailCaptureModal } from './EmailCaptureModal';
 
 interface PaperCardProps {
   paper: Paper;
@@ -20,6 +22,9 @@ export function PaperCard({ paper }: PaperCardProps) {
     v_journal_name
   } = paper;
 
+  const { authenticated, loading } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
@@ -36,6 +41,20 @@ export function PaperCard({ paper }: PaperCardProps) {
   const formattedCitations = displayCitations > 1000 
     ? `${(displayCitations / 1000).toFixed(1)}k` 
     : displayCitations;
+
+  const handleAuthAction = (action: () => void) => {
+    if (!authenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    action();
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    // Reload to update auth state globally
+    window.location.reload();
+  };
 
   const generateSummary = async () => {
     setLoadingSummary(true);
@@ -107,7 +126,18 @@ export function PaperCard({ paper }: PaperCardProps) {
         {/* Title & Author */}
         <div>
           <h3 className="text-lg md:text-xl font-bold text-slate-100 leading-snug group-hover:text-cyan-100 transition-colors duration-300">
-            <a href={paper.link || paper.pdfLink || '#'} target="_blank" rel="noopener noreferrer" className="hover:underline decoration-cyan-500/50 decoration-2 underline-offset-4">
+            <a 
+              href={paper.link || paper.pdfLink || '#'} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:underline decoration-cyan-500/50 decoration-2 underline-offset-4"
+              onClick={(e) => {
+                if (!authenticated && (paper.link || paper.pdfLink)) {
+                  e.preventDefault();
+                  setShowAuthModal(true);
+                }
+              }}
+            >
               {title}
             </a>
           </h3>
@@ -126,7 +156,7 @@ export function PaperCard({ paper }: PaperCardProps) {
         {/* AI Summary Section */}
         {!aiSummary && !loadingSummary && (
           <button
-            onClick={generateSummary}
+            onClick={() => handleAuthAction(generateSummary)}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold bg-gradient-to-r from-purple-600/20 to-cyan-600/20 hover:from-purple-600/30 hover:to-cyan-600/30 border border-purple-500/30 hover:border-purple-500/50 text-purple-300 hover:text-purple-200 transition-all duration-300 w-fit"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5 15.5 15.5"/></svg>
@@ -159,7 +189,7 @@ export function PaperCard({ paper }: PaperCardProps) {
           <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-red-950/20 border border-red-500/30">
             <span className="text-xs text-red-300">{summaryError}</span>
             <button
-              onClick={generateSummary}
+              onClick={() => handleAuthAction(generateSummary)}
               className="text-xs text-red-400 hover:text-red-300 underline"
             >
               Retry
@@ -170,7 +200,7 @@ export function PaperCard({ paper }: PaperCardProps) {
         {/* View Full Review Button */}
         {aiSummary && !showReviewModal && (
           <button
-            onClick={generateDetailedReview}
+            onClick={() => handleAuthAction(generateDetailedReview)}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold bg-gradient-to-r from-indigo-600/20 to-purple-600/20 hover:from-indigo-600/30 hover:to-purple-600/30 border border-indigo-500/30 hover:border-indigo-500/50 text-indigo-300 hover:text-indigo-200 transition-all duration-300 w-fit"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -202,6 +232,12 @@ export function PaperCard({ paper }: PaperCardProps) {
                href={pdfLink} 
                target="_blank" 
                rel="noopener noreferrer"
+               onClick={(e) => {
+                  if (!authenticated) {
+                    e.preventDefault();
+                    setShowAuthModal(true);
+                  }
+               }}
                className="
                  flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-slate-200 
                  bg-slate-800/50 hover:bg-red-500/10 hover:text-red-400 border border-slate-700 hover:border-red-500/30
@@ -270,7 +306,12 @@ export function PaperCard({ paper }: PaperCardProps) {
         </div>,
         document.body
       )}
+
+      {/* Auth Modal */}
+      <EmailCaptureModal 
+        isOpen={showAuthModal} 
+        onSuccess={handleAuthSuccess} 
+      />
     </>
   );
 }
-
