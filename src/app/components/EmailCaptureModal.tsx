@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 
 interface EmailCaptureModalProps {
@@ -41,7 +42,7 @@ export function EmailCaptureModal({ isOpen, onSuccess }: EmailCaptureModalProps)
     }
   };
 
-  return (
+  return typeof window !== 'undefined' ? createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-xl transition-opacity duration-300" />
@@ -104,6 +105,7 @@ export function EmailCaptureModal({ isOpen, onSuccess }: EmailCaptureModalProps)
           </form>
         </div>
       </div>
-    </div>
-  );
+    </div>,
+    document.body
+  ) : null;
 }
