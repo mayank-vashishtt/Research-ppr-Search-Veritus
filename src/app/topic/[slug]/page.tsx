@@ -120,7 +120,7 @@ export default function TopicPage({ params }: { params: Promise<{ slug: string }
               onClick={() => router.push('/')}
               className="text-lg font-bold text-slate-100 hover:text-cyan-400 transition-colors shrink-0"
             >
-              <span className="text-cyan-500">Veritus</span>Discovery
+              <span className="text-cyan-500">Discovery</span>
             </button>
             
             <div className="flex-1 max-w-lg">

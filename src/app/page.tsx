@@ -158,7 +158,7 @@ export default function Home() {
       )}
 
       <footer className="mt-24 w-full border-t border-slate-800 pt-8 text-center text-slate-600 text-sm">
-        <p>© {new Date().getFullYear()} Veritus Micro-App. Powered by Veritus Search API.</p>
+        <p>© {new Date().getFullYear()} Discovery Micro-App. Powered by Veritus Search API.</p>
       </footer>
       
       {/* Background Decorative Blobs */}

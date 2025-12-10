@@ -70,7 +70,7 @@ export function JobPoller({ jobId, onComplete, onError }: JobPollerProps) {
          <div className="absolute inset-0 rounded-full border-4 border-slate-700"></div>
          <div className="absolute inset-0 rounded-full border-4 border-t-cyan-500 animate-spin"></div>
       </div>
-      <h3 className="text-xl font-medium text-slate-200 mb-2">Searching Veritus Database...</h3>
+      <h3 className="text-xl font-medium text-slate-200 mb-2">Searching Database...</h3>
       <p className="text-slate-400 max-w-md">
         We are analyzing millions of papers to find the most relevant results for your topic. This usually takes a few seconds.
       </p>
